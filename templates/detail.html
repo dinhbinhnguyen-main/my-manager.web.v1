@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% block title %}{{ p.display_title }} - {{ p.formatted_price }} | {{ site_name }}{% endblock %}
+
+{% block meta_description %}{{ p.display_title }}. Giá: {{ p.formatted_price }}. Diện tích: {{ p.formatted_area }}. Pháp lý: {{ p.legal_label }}. Xem hình ảnh thực tế và liên hệ tư vấn ngay.{% endblock %}
+
+{% block content %}
+<div class="container detail-container">
+
+  <!-- Mobile Top Navigation Bar (Mobile Only: Back + Category + Share) -->
+  <nav class="mobile-top-nav" aria-label="Mobile Navigation">
+    <a href="javascript:history.back()" class="btn-mobile-back" aria-label="Quay lại">
+      <span>‹</span>
+      <span>Quay lại</span>
+    </a>
+    <div class="mobile-nav-badge">
+      <span>{{ p.category_label }} • {{ p.ward_short }}</span>
+    </div>
+    <button type="button" class="btn-mobile-share" onclick="copyCurrentLink()" title="Sao chép liên kết" aria-label="Chia sẻ">
+      🔗
+    </button>
+  </nav>
+
+  <!-- Desktop Breadcrumb (Hidden on Mobile) -->
+  <nav class="breadcrumb desktop-breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Trang chủ</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/?category={{ p.category }}">{{ p.category_label }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/?ward={{ p.ward }}">{{ p.ward_short }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <span style="color: #fff; font-weight: 600;">#{{ p.pid or p.id[:8] }}</span>
+  </nav>
+
+  <div class="detail-layout">
+    
+    <!-- Left Column: Media, Highlights & Specs -->
+    <div class="detail-main">
+      
+      <!-- 1. Hero Image Gallery (Đưa lên đầu tiên chuẩn Mobile-First) -->
+      {% if p.images and p.images|length > 0 %}
+      <section class="gallery-container" id="propertyGallery">
+        <div class="gallery-main" title="Bấm để phóng to toàn màn hình">
+          <img src="{{ p.images[0] }}" id="galleryMainImage" alt="{{ p.display_title }}" width="800" height="500">
+          
+          {% if p.images|length > 1 %}
+          <button type="button" class="gallery-nav-btn gallery-prev" id="galleryPrevBtn" aria-label="Ảnh trước">‹</button>
+          <button type="button" class="gallery-nav-btn gallery-next" id="galleryNextBtn" aria-label="Ảnh kế">›</button>
+          {% endif %}
+
+          <!-- Photo Counter Badge (Instagram/Airbnb style) -->
+          <div class="media-counter" id="galleryCounterBadge">
+            📷 1 / {{ p.images|length }}
+          </div>
+
+          <!-- Mobile Swipe Hint -->
+          {% if p.images|length > 1 %}
+          <div class="mobile-swipe-badge">
+            👈 Vuốt ảnh 👉
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Thumbnails Strip -->
+        {% if p.images|length > 1 %}
+        <div class="gallery-thumbs" id="galleryThumbs">
+          {% for img in p.images %}
+          <div class="thumb-item {% if loop.first %}active{% endif %}" data-full="{{ img }}" data-index="{{ loop.index0 }}">
+            <img src="{{ img }}" alt="Ảnh {{ loop.index }}" loading="lazy" width="90" height="60">
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <!-- 2. Detail Header: Price, Title, Address & Badges -->
+      <section class="detail-header-card">
+        <!-- Badges Bar -->
+        <div class="detail-tags">
+          {% if p.transaction_type == 'rental' %}
+          <span class="badge badge-rental">Cho thuê</span>
+          {% else %}
+          <span class="badge badge-sale">Cần bán</span>
+          {% endif %}
+
+          {% if 'private' in p.legal %}
+          <span class="badge badge-gold">Sổ riêng</span>
+          {% endif %}
+
+          <span class="feature-pill">Mã: #{{ p.pid or p.id[:8] }}</span>
+          <span class="feature-pill">Cập nhật: {{ p.updated_at[:10] }}</span>
+        </div>
+
+        <!-- Primary Price Callout (Lớn, rõ ràng trên mobile) -->
+        <div class="detail-price-banner">
+          <div class="banner-price-main">{{ p.formatted_price }}</div>
+          {% if p.price_per_m2 %}
+          <div class="banner-price-sub">{{ p.price_per_m2 }}</div>
+          {% elif p.formatted_area %}
+          <div class="banner-price-sub">{{ p.formatted_area }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Title -->
+        <h1 class="detail-title">{{ p.display_title }}</h1>
+        
+        <!-- Address with Copy Button -->
+        <div class="detail-address">
+          <span>📍</span>
+          <span>{{ p.display_address }}</span>
+        </div>
+
+        <!-- Mobile Quick Action Buttons Bar (Gọi & Zalo nổi bật 50/50, Sao chép link toàn dòng) -->
+        <div class="mobile-quick-actions">
+          {% if contact_phone %}
+          <a href="tel:{{ contact_phone }}" class="btn-quick-call">
+            <span class="quick-icon">📞</span>
+            <span class="quick-text">Gọi Hotline</span>
+          </a>
+          {% endif %}
+          {% if contact_zalo %}
+          <a href="https://zalo.me/{{ contact_zalo }}?text={{ ('Xin chào, tôi quan tâm BĐS mã: ' + p.pid + ' (' + p.display_title + ')')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn-quick-zalo">
+            <span class="quick-icon">💬</span>
+            <span class="quick-text">Nhắn Zalo</span>
+          </a>
+          {% endif %}
+        </div>
+        <button type="button" class="btn-quick-share-row" onclick="copyCurrentLink()">
+          <span>🔗</span>
+          <span>Sao chép liên kết BĐS này</span>
+        </button>
+
+        <!-- Key Metrics Strip (4 ô thông số then chốt) -->
+        <div class="metrics-strip">
+          <div class="metric-box">
+            <span class="metric-label">Diện Tích</span>
+            <span class="metric-val highlight">📐 {{ p.formatted_area }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Pháp Lý</span>
+            <span class="metric-val">📑 {{ p.legal_label }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Đường Vào</span>
+            <span class="metric-val">🚗 {{ p.building_line_label }}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Kết Cấu</span>
+            <span class="metric-val">🏢 {{ p.structure_display or 'Cập nhật' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2.5 Tiện Ích: Tải Toàn Bộ Ảnh & AI Rewrite Nội Dung (Mobile & Desktop) -->
+      <section class="tools-card" id="propertyToolsCard">
+        <div class="tools-header">
+          <div class="tools-header-title">
+            <span class="tools-icon">⚡</span>
+            <h3>Tiện Ích Nhanh Cho Bài Viết</h3>
+          </div>
+          <span class="tools-badge">Ảnh Gốc & AI Rewrite</span>
+        </div>
+
+        <div class="tools-grid">
+          <!-- Khối 1: Tải Trọn Bộ Ảnh Gốc Về Máy (Không Nén) -->
+          <div class="tool-block tool-download-block" id="toolDownloadBlock" data-id="{{ p.id }}" data-pid="{{ p.pid or p.id[:8] }}" data-images='{{ p.images | tojson | forceescape }}'>
+            <div class="tool-block-header">
+              <span class="tool-icon">🖼️</span>
+              <div>
+                <h4 class="tool-title">Tải Toàn Bộ Hình Ảnh Gốc</h4>
+                <p class="tool-sub">
+                  {% if p.images and p.images|length > 0 %}
+                    Tải trực tiếp {{ p.images|length }} ảnh về máy (không nén ZIP)
+                  {% else %}
+                    Chưa có ảnh sẵn sàng
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+
+            {% if p.images and p.images|length > 0 %}
+            <button type="button" class="btn-tool-action btn-download-direct" id="btnDownloadAllImages" onclick="downloadAllImagesDirectly()" title="Tải trực tiếp toàn bộ ảnh về máy">
+              <span class="btn-tool-icon" id="btnDownloadIcon">📥</span>
+              <span class="btn-tool-text" id="btnDownloadText">Tải Toàn Bộ {{ p.images|length }} Ảnh Về Máy</span>
+            </button>
+            <div class="tool-hint">
+              <span>💡</span> Lưu trực tiếp từng ảnh vào thư viện ảnh / Downloads của thiết bị, không cần giải nén.
+            </div>
+            {% else %}
+            <button type="button" class="btn-tool-action btn-download-direct disabled" id="btnDownloadAllImages" disabled>
+              <span>📁</span>
+              <span>Chưa Có Ảnh Để Tải</span>
+            </button>
+            {% endif %}
+          </div>
+
+          <!-- Khối 2: AI Rewrite Nội Dung -->
+          <div class="tool-block tool-ai-block">
+            <div class="tool-block-header">
+              <span class="tool-icon">🤖</span>
+              <div>
+                <h4 class="tool-title">AI Viết Bài Chuẩn SEO Facebook</h4>
+                <p class="tool-sub">Tuân thủ chính sách Meta, chống spam như my-manager.v1</p>
+              </div>
+            </div>
+
+            <div class="ai-controls">
+              <label for="aiAngleSelect" class="ai-label">Chọn phong cách / góc nhìn bài viết:</label>
+              <div class="ai-selector-wrapper">
+                <select id="aiAngleSelect" class="ai-angle-select" aria-label="Góc nhìn viết bài">
+                  {% if angles %}
+                    {% for angle in angles %}
+                      <option value="{{ angle.name }}">{{ angle.name }} - {{ angle.description }}</option>
+                    {% endfor %}
+                  {% else %}
+                    <option value="Thực tế & Súc tích">Thực tế & Súc tích</option>
+                    <option value="Trải nghiệm sống & Tiện ích">Trải nghiệm sống & Tiện ích</option>
+                    <option value="Góc nhìn giá trị & Tiềm năng">Góc nhìn giá trị & Tiềm năng</option>
+                    <option value="Gợi mở nhu cầu">Gợi mở nhu cầu</option>
+                    <option value="Review chân thực">Review chân thực</option>
+                  {% endif %}
+                </select>
+              </div>
+
+              <button type="button" class="btn-tool-action btn-ai-generate" id="btnAiGenerate" onclick="triggerAiRewrite('{{ p.id }}')">
+                <span class="btn-tool-icon">✨</span>
+                <span class="btn-tool-text" id="btnAiGenerateText">Viết Lại Bằng Gemini AI</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khối Kết Quả AI Rewrite (Ẩn mặc định, xuất hiện khi tạo xong) -->
+        <div class="ai-result-card" id="aiResultCard" style="display: none;">
+          <div class="ai-result-header">
+            <div class="ai-result-badge">
+              <span>✨</span>
+              <span id="aiResultAngleBadge">Phong cách: Thực tế & Súc tích</span>
+            </div>
+            <button type="button" class="btn-copy-all" onclick="copyAiAll()" title="Sao chép toàn bộ bài đăng">
+              📋 Sao Chép Toàn Bộ Bài Viết
+            </button>
+          </div>
+
+          <div class="ai-output-group">
+            <div class="ai-output-label">
+              <span>🏷️ Tiêu đề Facebook mới (< 85 ký tự)</span>
+              <button type="button" class="btn-copy-mini" onclick="copyAiTitle()">Sao chép</button>
+            </div>
+            <div class="ai-output-box" id="aiOutputTitle">...</div>
+          </div>
+
+          <div class="ai-output-group">
+            <div class="ai-output-label">
+              <span>📝 Mô tả Facebook mới (kèm liên hệ & hashtag)</span>
+              <button type="button" class="btn-copy-mini" onclick="copyAiDesc()">Sao chép</button>
+            </div>
+            <div class="ai-output-box ai-output-desc" id="aiOutputDesc">...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Specifications Card (Thông Tin Đặc Tính) -->
+      <section class="specs-card">
+        <h2 class="section-title">
+          <span>📋</span> Thông Số Kỹ Thuật BĐS
+        </h2>
+
+        <div class="specs-grid">
+          <div class="spec-cell">
+            <div class="spec-icon">🏷️</div>
+            <div class="spec-info">
+              <span class="spec-name">Mã sản phẩm (PID)</span>
+              <span class="spec-value">{{ p.pid or p.id[:8] }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">🏡</div>
+            <div class="spec-info">
+              <span class="spec-name">Loại hình</span>
+              <span class="spec-value">{{ p.category_label }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">📑</div>
+            <div class="spec-info">
+              <span class="spec-name">Pháp lý</span>
+              <span class="spec-value">{{ p.legal_label }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">🚗</div>
+            <div class="spec-info">
+              <span class="spec-name">Đường giao thông</span>
+              <span class="spec-value">{{ p.building_line_label }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">📐</div>
+            <div class="spec-info">
+              <span class="spec-name">Diện tích sử dụng</span>
+              <span class="spec-value">{{ p.formatted_area }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">🛋️</div>
+            <div class="spec-info">
+              <span class="spec-name">Nội thất</span>
+              <span class="spec-value">{{ p.furniture_label }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">🏢</div>
+            <div class="spec-info">
+              <span class="spec-name">Kết cấu</span>
+              <span class="spec-value">{{ p.structure_display or 'Đang cập nhật' }}</span>
+            </div>
+          </div>
+
+          <div class="spec-cell">
+            <div class="spec-icon">⚡</div>
+            <div class="spec-info">
+              <span class="spec-name">Công năng</span>
+              <span class="spec-value">{{ p.function or 'Đang cập nhật' }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Description Card (Mô Tả Chi Tiết) -->
+      <section class="desc-card">
+        <h2 class="section-title">
+          <span>📝</span> Mô Tả Chi Tiết
+        </h2>
+        <div class="desc-content">
+          {% if p.description_paragraphs and p.description_paragraphs|length > 0 %}
+            {% for para in p.description_paragraphs %}
+              <p>{{ para }}</p>
+            {% endfor %}
+          {% else %}
+            <p>Liên hệ trực tiếp chuyên viên tư vấn để nhận thông tin chi tiết và sắp xếp lịch xem thực địa.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- 5. Khối Tư Vấn BĐS Cho Mobile (Hiển thị ngay sau mô tả) -->
+      <section class="mobile-agent-card">
+        <div class="contact-card-header">
+          <div class="agent-avatar">🏢</div>
+          <div class="agent-title">Tư Vấn Bất Động Sản Đà Lạt</div>
+          <div class="agent-subtitle">Hỗ Trợ Xem Nhà & Pháp Lý 24/7</div>
+        </div>
+
+        <div class="agent-actions">
+          {% if contact_phone %}
+          <a href="tel:{{ contact_phone }}" class="btn-sidebar-call">
+            📞 Gọi Trực Tiếp ({{ contact_phone }})
+          </a>
+          {% endif %}
+          {% if contact_zalo %}
+          <a href="https://zalo.me/{{ contact_zalo }}?text={{ ('Xin chào, tôi quan tâm BĐS mã: ' + p.pid + ' (' + p.display_title + ')')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn-sidebar-zalo">
+            💬 Nhắn Tin Zalo Ngay
+          </a>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- 6. Related Properties (Bất Động Sản Tương Tự) -->
+      {% if related and related|length > 0 %}
+      <section class="related-section">
+        <h2 class="section-title">
+          <span>✨</span> Bất Động Sản Tương Tự
+        </h2>
+        <div class="related-scroll-grid">
+          {% for item in related %}
+          <article class="product-card related-card">
+            <div class="card-media">
+              <a href="/property/{{ item.id }}">
+                <img src="{{ item.primary_image }}" alt="{{ item.display_title }}" loading="lazy">
+              </a>
+              <div class="media-badges">
+                <span class="badge badge-sale">{{ item.transaction_label }}</span>
+              </div>
+            </div>
+            <div class="card-content">
+              <div class="card-pricing">
+                <div class="price-main" style="font-size: 1.15rem;">{{ item.formatted_price }}</div>
+                <div class="price-sub">{{ item.formatted_area }}</div>
+              </div>
+              <h3 class="card-title" style="font-size: 0.9rem;">
+                <a href="/property/{{ item.id }}">{{ item.display_title }}</a>
+              </h3>
+              <div class="card-footer">
+                <a href="/property/{{ item.id }}" class="btn-card-detail">Xem chi tiết →</a>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+    </div>
+
+    <!-- Right Column: Sticky Contact Sidebar (Desktop Only) -->
+    <aside class="detail-sidebar desktop-sidebar">
+      <div class="contact-card">
+        <div class="contact-card-header">
+          <div class="agent-avatar">🏢</div>
+          <div class="agent-title">Tư Vấn Bất Động Sản Đà Lạt</div>
+          <div class="agent-subtitle">Hỗ Trợ Xem Nhà & Pháp Lý 24/7</div>
+        </div>
+
+        <div style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600;">Giá chào bán chính chủ</div>
+          <div style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--gold-light);">{{ p.formatted_price }}</div>
+          {% if p.price_per_m2 %}
+          <div style="font-size: 0.85rem; color: var(--primary-light); margin-top: 0.25rem;">{{ p.price_per_m2 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="contact-card-actions">
+          {% if contact_phone %}
+          <a href="tel:{{ contact_phone }}" class="btn-sidebar-call" id="sidebarCallBtn">
+            📞 Gọi Trực Tiếp ({{ contact_phone }})
+          </a>
+          {% endif %}
+
+          {% if contact_zalo %}
+          <a href="https://zalo.me/{{ contact_zalo }}?text={{ ('Xin chào, tôi quan tâm BĐS mã: ' + p.pid + ' (' + p.display_title + ')')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn-sidebar-zalo" id="sidebarZaloBtn">
+            💬 Nhắn Tin Zalo Ngay
+          </a>
+          {% endif %}
+
+          <button type="button" class="btn-sidebar-share" onclick="copyCurrentLink()">
+            🔗 Sao Chép Đường Dẫn BĐS
+          </button>
+        </div>
+
+        <div style="margin-top: 1.25rem; font-size: 0.8rem; color: var(--text-dim); text-align: center; line-height: 1.5;">
+          Cam kết bảo mật thông tin & hỗ trợ kiểm tra quy hoạch miễn phí.
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+</div>
+
+<!-- Lightbox Modal -->
+<div class="lightbox-modal" id="lightboxModal" role="dialog" aria-modal="true" aria-label="Hình ảnh toàn màn hình">
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Đóng">✕</button>
+  
+  {% if p.images and p.images|length > 1 %}
+  <button type="button" class="gallery-nav-btn gallery-prev" id="lightboxPrevBtn" style="left: 1.5rem;" aria-label="Ảnh trước">‹</button>
+  <button type="button" class="gallery-nav-btn gallery-next" id="lightboxNextBtn" style="right: 1.5rem;" aria-label="Ảnh kế">›</button>
+  {% endif %}
+
+  <div class="lightbox-content">
+    <img src="" id="lightboxImg" class="lightbox-img" alt="Ảnh BĐS phóng to">
+  </div>
+
+  <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+</div>
+{% endblock %}
+
+{% block mobile_bar %}
+<!-- Custom Mobile Sticky Bar For Detail Page -->
+<div class="mobile-bottom-bar detail-mobile-bar" id="mobileBottomBar">
+  <div class="detail-bar-left">
+    <span class="detail-bar-price">{{ p.formatted_price }}</span>
+    {% if p.price_per_m2 %}
+    <span class="detail-bar-sub">{{ p.price_per_m2 }}</span>
+    {% elif p.formatted_area %}
+    <span class="detail-bar-sub">{{ p.formatted_area }}</span>
+    {% endif %}
+  </div>
+  <div class="detail-bar-actions">
+    {% if contact_phone %}
+    <a href="tel:{{ contact_phone }}" class="btn-detail-bar-call" title="Gọi ngay">
+      📞 Gọi
+    </a>
+    {% endif %}
+    {% if contact_zalo %}
+    <a href="https://zalo.me/{{ contact_zalo }}?text={{ ('Xin chào, tôi quan tâm BĐS mã: ' + p.pid + ' (' + p.display_title + ')')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn-detail-bar-zalo" title="Chat Zalo">
+      💬 Zalo
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

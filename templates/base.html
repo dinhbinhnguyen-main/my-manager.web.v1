@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{% block title %}{{ site_name }} - Sàn Giao Dịch BĐS Đà Lạt{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Khám phá hàng trăm bất động sản nhà phố, biệt thự, đất nền, căn hộ cho thuê và bán tại Thành phố Đà Lạt. Thông tin pháp lý minh bạch, hình ảnh thực tế 100%.{% endblock %}">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'><path d='M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'/></svg>">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header" id="siteHeader">
+    <div class="container">
+      <nav class="nav-container" aria-label="Main Navigation">
+        <!-- Brand Logo -->
+        <a href="/" class="brand-logo" id="brandLogoLink">
+          <div class="logo-badge">ĐL</div>
+          <div class="brand-text">
+            <span class="brand-title">{{ site_name }}</span>
+            <span class="brand-subtitle">Real Estate Portfolio</span>
+          </div>
+        </a>
+
+        <!-- Header Actions -->
+        <div class="nav-actions">
+          {% if contact_phone %}
+          <a href="tel:{{ contact_phone }}" class="btn-contact btn-phone" id="headerCallBtn" title="Gọi hotline">
+            <span class="pulse-dot"></span>
+            <span>📞 {{ contact_phone }}</span>
+          </a>
+          {% endif %}
+          
+          {% if contact_zalo %}
+          <a href="https://zalo.me/{{ contact_zalo }}" target="_blank" rel="noopener noreferrer" class="btn-contact btn-zalo" id="headerZaloBtn" title="Chat Zalo ngay">
+            <span>💬 Chat Zalo</span>
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main id="mainContent">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" id="siteFooter">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo" style="margin-bottom: 0.5rem;">
+            <div class="logo-badge">ĐL</div>
+            <div class="brand-text">
+              <span class="brand-title">{{ site_name }}</span>
+              <span class="brand-subtitle">Thành phố Đà Lạt, Lâm Đồng</span>
+            </div>
+          </div>
+          <p>
+            Cung cấp danh mục bất động sản Đà Lạt chọn lọc, vị trí đắc địa, pháp lý an toàn và hình ảnh thực tế chất lượng cao. Hỗ trợ tư vấn mua bán và đầu tư tận tâm.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Khu Vực Tiêu Biểu</h4>
+          <ul class="footer-links">
+            <li><a href="/?ward=phuong_1_xuan_huong">BĐS Phường 1 (Xuân Hương)</a></li>
+            <li><a href="/?ward=phuong_2_xuan_huong">BĐS Phường 2 (Xuân Hương)</a></li>
+            <li><a href="/?ward=phuong_6_cam_ly">BĐS Phường 6 (Cam Ly)</a></li>
+            <li><a href="/?ward=phuong_7_lang_biang">BĐS Phường 7 (Lang Biang)</a></li>
+            <li><a href="/?ward=phuong_8_lam_vien">BĐS Phường 8 (Lâm Viên)</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Liên Hệ Tư Vấn</h4>
+          <ul class="footer-links">
+            {% if contact_phone %}
+            <li><strong>Hotline:</strong> <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a></li>
+            {% endif %}
+            {% if contact_zalo %}
+            <li><strong>Zalo:</strong> <a href="https://zalo.me/{{ contact_zalo }}" target="_blank" rel="noopener">{{ contact_zalo }}</a></li>
+            {% endif %}
+            <li><strong>Địa chỉ:</strong> Đà Lạt, Tỉnh Lâm Đồng</li>
+            <li><strong>Trực tuyến:</strong> Hỗ trợ 24/7</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 {{ site_name }}. Nền tảng BĐS vận hành bởi công nghệ tối giản & siêu tốc.</div>
+        <div>FastAPI & SQLite Engine</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Sticky Bottom Bar -->
+  {% block mobile_bar %}
+  <div class="mobile-bottom-bar" id="mobileBottomBar">
+    <div class="mobile-bar-actions">
+      {% if contact_phone %}
+      <a href="tel:{{ contact_phone }}" class="btn-sidebar-call" id="mobileCallBtn" style="padding: 0.65rem; font-size: 0.9rem;">
+        📞 Gọi Ngay
+      </a>
+      {% endif %}
+      {% if contact_zalo %}
+      <a href="https://zalo.me/{{ contact_zalo }}" target="_blank" rel="noopener noreferrer" class="btn-sidebar-zalo" id="mobileZaloBtn" style="padding: 0.65rem; font-size: 0.9rem;">
+        💬 Zalo Chat
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endblock %}
+
+  <!-- Back to Top Button on Mobile -->
+  <button type="button" class="btn-back-to-top" id="btnBackToTop" title="Cuộn lên đầu trang" aria-label="Cuộn lên đầu">
+    ↑
+  </button>
+
+  <!-- Toast Element -->
+  <div class="toast" id="toastNotification" role="alert" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/main.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

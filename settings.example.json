@@ -1,0 +1,16 @@
+{
+  "_huong_dan": "Tệp cấu hình hệ thống web BĐS. Bạn có thể sửa trực tiếp đường dẫn bên dưới.",
+  
+  "_mau_duong_dan_linux": "Trên Linux: /home/dinhbinhnguyen/Devs/my-manager.v1/bin/products.db",
+  "_mau_duong_dan_macos": "Trên macOS: /Users/dinhbinhnguyen/Devs/my-manager.v1/bin/products.db hoặc /Volumes/ExternalDisk/...",
+
+  "db_path": "/home/dinhbinhnguyen/Devs/my-manager.v1/bin/products.db",
+  "images_dir": "/home/dinhbinhnguyen/Devs/my-manager.v1/bin/products",
+  
+  "port": 8000,
+  "host": "0.0.0.0",
+  "contact_phone": "0949940987",
+  "contact_zalo": "0949940987",
+  "site_name": "BĐS Đà Lạt Luxury",
+  "prefer_watermark": true
+}

@@ -1,0 +1,76 @@
+# ==========================================
+# Python & Bytecode
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# ==========================================
+# Environment Variables & Secret Configs
+# ==========================================
+.env
+.env.*
+!.env.example
+settings.json
+!settings.example.json
+
+# ==========================================
+# Databases & Local Data
+# ==========================================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+bds.db
+products.db
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+logs/
+*.tmp
+*.temp
+
+# ==========================================
+# OS & Editor Artifacts
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

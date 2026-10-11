@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site_name }} - Danh Sách BĐS Đang Rao Bán & Cho Thuê{% endblock %}
+
+{% block meta_description %}Tìm kiếm danh sách nhà phố, biệt thự, căn hộ, đất nền đang bán và cho thuê tại Đà Lạt với hình ảnh thực tế, giá chuẩn và thông tin pháp lý đầy đủ.{% endblock %}
+
+{% block content %}
+<div class="container">
+  
+  <!-- Hero Section -->
+  <section class="hero-section" id="heroSection">
+    <div class="hero-header">
+      <div class="hero-pill">
+        <span class="pulse-dot"></span>
+        <span>Kho Dữ Liệu BĐS Đà Lạt Đang Giao Dịch</span>
+      </div>
+      <h1 class="hero-title">
+        Tìm Kiếm Bất Động Sản <span>Đà Lạt Đích Thực</span>
+      </h1>
+      <p class="hero-description">
+        Hơn 100+ căn nhà phố, biệt thự, homestay và đất nền vị trí đắc địa với thông tin pháp lý minh bạch và hình ảnh thực địa 100%.
+      </p>
+
+      <!-- Market Stats Ribbon -->
+      <div class="stats-ribbon">
+        <div class="stat-item">
+          <span class="stat-num">{{ stats.total_selling }}</span>
+          <span class="stat-label">Đang chào bán</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">{{ stats.category_counts.get('townhouse', 0) }}</span>
+          <span class="stat-label">Nhà phố</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">{{ stats.category_counts.get('apartment_condo', 0) }}</span>
+          <span class="stat-label">Căn hộ / KS</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">17</span>
+          <span class="stat-label">Phường/Xã</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Search & Filter Trigger Bar (Hiển thị tối ưu trên Mobile) -->
+    <div class="mobile-search-filter-bar">
+      <form action="/" method="GET" class="mobile-search-form" id="mobileSearchForm">
+        <span class="search-icon">🔍</span>
+        <input type="text" name="q" class="mobile-search-input" placeholder="Tìm tên đường, khu vực..." value="{{ search_query }}">
+        {% if selected_trans and selected_trans != 'all' %}<input type="hidden" name="trans" value="{{ selected_trans }}">{% endif %}
+        {% if selected_cat and selected_cat != 'all' %}<input type="hidden" name="category" value="{{ selected_cat }}">{% endif %}
+      </form>
+      <button type="button" class="btn-mobile-filter-trigger" id="openMobileFilterBtn" aria-label="Mở bộ lọc">
+        <span>⚙️ Lọc</span>
+        {% if active_filter_count > 0 %}
+        <span class="filter-count-badge">{{ active_filter_count }}</span>
+        {% endif %}
+      </button>
+    </div>
+
+    <!-- Quick Filter Chips Scrollable (1 chạm chọn ngay trên Mobile & Desktop) -->
+    <div class="quick-chips-container" role="region" aria-label="Bộ lọc nhanh">
+      <div class="quick-chips-scroll">
+        <a href="/?trans=all" class="quick-chip {% if (selected_trans == 'all' or not selected_trans) and not selected_cat and not selected_price and not selected_line %}active{% endif %}">
+          Tất cả
+        </a>
+        <a href="/?trans=sale" class="quick-chip {% if selected_trans == 'sale' %}active{% endif %}">
+          🔥 Cần bán
+        </a>
+        <a href="/?trans=rental" class="quick-chip {% if selected_trans == 'rental' %}active{% endif %}">
+          🔑 Cho thuê
+        </a>
+        <a href="/?category=townhouse" class="quick-chip {% if selected_cat == 'townhouse' %}active{% endif %}">
+          🏡 Nhà phố
+        </a>
+        <a href="/?category=villa" class="quick-chip {% if selected_cat == 'villa' %}active{% endif %}">
+          🏰 Biệt thự
+        </a>
+        <a href="/?category=land_plot" class="quick-chip {% if selected_cat == 'land_plot' %}active{% endif %}">
+          🌾 Đất nền
+        </a>
+        <a href="/?category=apartment_condo" class="quick-chip {% if selected_cat == 'apartment_condo' %}active{% endif %}">
+          🏢 Căn hộ
+        </a>
+        <a href="/?line=car_access_road" class="quick-chip {% if selected_line == 'car_access_road' %}active{% endif %}">
+          🚗 Đường ô tô
+        </a>
+        <a href="/?price=under_3" class="quick-chip {% if selected_price == 'under_3' %}active{% endif %}">
+          💰 Dưới 3 tỷ
+        </a>
+        <a href="/?price=3_to_6" class="quick-chip {% if selected_price == '3_to_6' %}active{% endif %}">
+          💎 3 - 6 tỷ
+        </a>
+      </div>
+    </div>
+
+    <!-- Desktop Filter Card Form (Ẩn trên màn hình điện thoại để nhường chỗ cho Drawer) -->
+    <div class="filter-card desktop-filter-card" id="filterCard">
+      <!-- Tabs (Giao dịch) -->
+      <div class="filter-tabs" role="tablist">
+        <button type="button" class="tab-btn {% if selected_trans == 'all' or not selected_trans %}active{% endif %}" data-trans="all">
+          Tất Cả Giao Dịch
+        </button>
+        <button type="button" class="tab-btn {% if selected_trans == 'sale' %}active{% endif %}" data-trans="sale">
+          Cần Bán
+        </button>
+        <button type="button" class="tab-btn {% if selected_trans == 'rental' %}active{% endif %}" data-trans="rental">
+          Cho Thuê
+        </button>
+        <button type="button" class="tab-btn {% if selected_trans == 'transfer' %}active{% endif %}" data-trans="transfer">
+          Chuyển Nhượng
+        </button>
+      </div>
+
+      <form action="/" method="GET" id="filterForm">
+        <input type="hidden" name="trans" id="filterTrans" value="{{ selected_trans }}">
+
+        <div class="filter-grid">
+          <!-- Keyword -->
+          <div class="filter-group">
+            <label class="filter-label" for="searchKeyword">Từ Khóa / Tên Đường</label>
+            <input type="text" name="q" id="searchKeyword" class="filter-control" placeholder="{{ search_placeholder }}" value="{{ search_query }}">
+          </div>
+
+          <!-- Category -->
+          <div class="filter-group">
+            <label class="filter-label" for="filterCat">Loại Hình BĐS</label>
+            <select name="category" id="filterCat" class="filter-control">
+              <option value="all">Tất cả loại hình</option>
+              {% for k, v in cat_options.items() %}
+              <option value="{{ k }}" {% if selected_cat == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Ward -->
+          <div class="filter-group">
+            <label class="filter-label" for="filterWard">Khu Vực Phường / Xã</label>
+            <select name="ward" id="filterWard" class="filter-control">
+              <option value="all">Tất cả phường/xã</option>
+              {% for k, v in ward_options.items() %}
+              <option value="{{ k }}" {% if selected_ward == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Price Range -->
+          <div class="filter-group" id="filterGroupPrice">
+            <label class="filter-label" for="filterPrice" id="filterPriceLabel">{{ price_label }}</label>
+            <select name="price" id="filterPrice" class="filter-control">
+              <option value="">Tất cả mức giá</option>
+              {% for pr in price_ranges %}
+              <option value="{{ pr.id }}" {% if selected_price == pr.id %}selected{% endif %}>{{ pr.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Area Range -->
+          <div class="filter-group">
+            <label class="filter-label" for="filterArea">Diện Tích</label>
+            <select name="area" id="filterArea" class="filter-control">
+              <option value="">Tất cả diện tích</option>
+              {% for ar in area_ranges %}
+              <option value="{{ ar.id }}" {% if selected_area == ar.id %}selected{% endif %}>{{ ar.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Building Line / Đường vào -->
+          <div class="filter-group">
+            <label class="filter-label" for="filterLine">Đường Vào</label>
+            <select name="line" id="filterLine" class="filter-control">
+              <option value="all">Mọi loại đường</option>
+              {% for k, v in line_options.items() %}
+              <option value="{{ k }}" {% if selected_line == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button type="button" class="btn-secondary" onclick="resetFilters()">
+            ↺ Đặt lại
+          </button>
+          <button type="submit" class="btn-primary" id="btnFilterSubmit">
+            🔍 Tìm Kiếm Ngay
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mobile Bottom Sheet Filter Drawer Modal -->
+    <div class="mobile-filter-overlay" id="mobileFilterOverlay"></div>
+    <div class="mobile-filter-drawer" id="mobileFilterDrawer" role="dialog" aria-modal="true" aria-label="Bộ lọc bất động sản">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <span>⚙️ Bộ Lọc Bất Động Sản</span>
+          {% if active_filter_count > 0 %}
+          <span class="drawer-badge">({{ active_filter_count }})</span>
+          {% endif %}
+        </div>
+        <button type="button" class="drawer-close-btn" id="closeMobileFilterBtn" aria-label="Đóng">✕</button>
+      </div>
+      
+      <div class="drawer-body">
+        <form action="/" method="GET" id="drawerFilterForm">
+          <!-- Giao dịch -->
+          <div class="drawer-field">
+            <label class="drawer-label">Loại giao dịch</label>
+            <div class="drawer-chips-group">
+              <label class="drawer-radio-chip">
+                <input type="radio" name="trans" value="all" {% if selected_trans == 'all' or not selected_trans %}checked{% endif %}>
+                <span>Tất cả</span>
+              </label>
+              <label class="drawer-radio-chip">
+                <input type="radio" name="trans" value="sale" {% if selected_trans == 'sale' %}checked{% endif %}>
+                <span>Cần bán</span>
+              </label>
+              <label class="drawer-radio-chip">
+                <input type="radio" name="trans" value="rental" {% if selected_trans == 'rental' %}checked{% endif %}>
+                <span>Cho thuê</span>
+              </label>
+              <label class="drawer-radio-chip">
+                <input type="radio" name="trans" value="transfer" {% if selected_trans == 'transfer' %}checked{% endif %}>
+                <span>Chuyển nhượng</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Từ khóa -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerKeyword">Từ khóa / Tên đường</label>
+            <input type="text" name="q" id="drawerKeyword" class="filter-control" placeholder="Tên đường, view..." value="{{ search_query }}">
+          </div>
+
+          <!-- Loại BĐS -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerCat">Loại hình BĐS</label>
+            <select name="category" id="drawerCat" class="filter-control">
+              <option value="all">Tất cả loại hình</option>
+              {% for k, v in cat_options.items() %}
+              <option value="{{ k }}" {% if selected_cat == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Phường/Xã -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerWard">Khu vực Phường / Xã</label>
+            <select name="ward" id="drawerWard" class="filter-control">
+              <option value="all">Tất cả phường/xã</option>
+              {% for k, v in ward_options.items() %}
+              <option value="{{ k }}" {% if selected_ward == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Mức giá -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerPrice">Mức giá</label>
+            <select name="price" id="drawerPrice" class="filter-control">
+              <option value="">Tất cả mức giá</option>
+              {% for pr in price_ranges %}
+              <option value="{{ pr.id }}" {% if selected_price == pr.id %}selected{% endif %}>{{ pr.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Diện tích -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerArea">Diện tích</label>
+            <select name="area" id="drawerArea" class="filter-control">
+              <option value="">Tất cả diện tích</option>
+              {% for ar in area_ranges %}
+              <option value="{{ ar.id }}" {% if selected_area == ar.id %}selected{% endif %}>{{ ar.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Đường vào -->
+          <div class="drawer-field">
+            <label class="drawer-label" for="drawerLine">Đường vào</label>
+            <select name="line" id="drawerLine" class="filter-control">
+              <option value="all">Mọi loại đường</option>
+              {% for k, v in line_options.items() %}
+              <option value="{{ k }}" {% if selected_line == k %}selected{% endif %}>{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+      </div>
+
+      <div class="drawer-footer">
+        <button type="button" class="btn-drawer-reset" onclick="resetFilters()">
+          ↺ Đặt lại
+        </button>
+        <button type="button" class="btn-drawer-apply" onclick="document.getElementById('drawerFilterForm').submit()">
+          Áp Dụng ({{ total_count }} BĐS)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results Header & Sorting -->
+  <div class="results-header" id="resultsHeader">
+    <div class="results-count">
+      Tìm thấy <span>{{ total_count }}</span> bất động sản phù hợp
+      {% if search_query %} cho từ khóa "<strong>{{ search_query }}</strong>"{% endif %}
+    </div>
+
+    <div class="sort-group">
+      <label for="sortSelect" class="sort-label">Sắp xếp theo:</label>
+      <select id="sortSelect" class="sort-select" onchange="document.getElementById('filterForm').insertAdjacentHTML('beforeend', '<input type=\'hidden\' name=\'sort\' value=\'' + this.value + '\'>'); document.getElementById('filterForm').submit();">
+        {% for k, v in sort_options.items() %}
+        <option value="{{ k }}" {% if selected_sort == k %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  {% if products and products|length > 0 %}
+  <section class="product-grid" id="productGrid" aria-label="Danh sách bất động sản">
+    {% for p in products %}
+    <article class="product-card" id="productCard-{{ p.id }}">
+      <!-- Card Image Media -->
+      <div class="card-media">
+        <a href="/property/{{ p.id }}" title="{{ p.display_title }}">
+          <img src="{{ p.primary_image }}" alt="{{ p.display_title }}" loading="lazy" width="400" height="250">
+        </a>
+
+        <!-- Floating Badges -->
+        <div class="media-badges">
+          {% if p.transaction_type == 'rental' %}
+          <span class="badge badge-rental">Cho thuê</span>
+          {% else %}
+          <span class="badge badge-sale">Cần bán</span>
+          {% endif %}
+
+          {% if 'private' in p.legal %}
+          <span class="badge badge-gold">Sổ riêng</span>
+          {% endif %}
+        </div>
+
+        {% if p.image_count > 0 %}
+        <div class="media-counter">
+          📷 {{ p.image_count }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Card Content -->
+      <div class="card-content">
+        <!-- Price & Area -->
+        <div class="card-pricing">
+          <div class="price-main">{{ p.formatted_price }}</div>
+          {% if p.price_per_m2 %}
+          <div class="price-sub">{{ p.price_per_m2 }}</div>
+          {% elif p.formatted_area %}
+          <div class="price-sub">{{ p.formatted_area }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Title -->
+        <h2 class="card-title">
+          <a href="/property/{{ p.id }}" title="{{ p.display_title }}">{{ p.display_title }}</a>
+        </h2>
+
+        <!-- Location -->
+        <div class="card-location">
+          <span>📍</span>
+          <span>{{ p.street_display }}, {{ p.ward_short }}</span>
+        </div>
+
+        <!-- Spec Feature Pills -->
+        <div class="card-features">
+          <span class="feature-pill">📐 {{ p.formatted_area }}</span>
+          {% if p.structure_display %}
+          <span class="feature-pill">🏢 {{ p.structure_display }}</span>
+          {% endif %}
+          {% if p.building_line_label and p.building_line != 'Đang cập nhật' %}
+          <span class="feature-pill">🚗 {{ p.building_line_label }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Card Footer Actions -->
+        <div class="card-footer">
+          <a href="/property/{{ p.id }}" class="btn-card-detail">
+            Xem chi tiết <span>→</span>
+          </a>
+
+          <div class="card-quick-actions">
+            {% if contact_phone %}
+            <a href="tel:{{ contact_phone }}" class="icon-btn" title="Gọi điện">📞</a>
+            {% endif %}
+            {% if contact_zalo %}
+            <a href="https://zalo.me/{{ contact_zalo }}?text={{ ('Quan tâm BĐS mã: ' + p.pid)|urlencode }}" target="_blank" rel="noopener noreferrer" class="icon-btn" title="Chat Zalo">💬</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <nav class="pagination" aria-label="Pagination">
+    {% if current_page > 1 %}
+    <a href="?trans={{ selected_trans }}&category={{ selected_cat }}&ward={{ selected_ward }}&price={{ selected_price }}&area={{ selected_area }}&line={{ selected_line }}&sort={{ selected_sort }}&q={{ search_query }}&page={{ current_page - 1 }}" class="page-item" aria-label="Trang trước">
+      ←
+    </a>
+    {% else %}
+    <span class="page-item disabled">←</span>
+    {% endif %}
+
+    {% for page_num in range(1, total_pages + 1) %}
+      {% if page_num == current_page %}
+      <span class="page-item active">{{ page_num }}</span>
+      {% elif page_num <= 3 or page_num > total_pages - 2 or (page_num >= current_page - 1 and page_num <= current_page + 1) %}
+      <a href="?trans={{ selected_trans }}&category={{ selected_cat }}&ward={{ selected_ward }}&price={{ selected_price }}&area={{ selected_area }}&line={{ selected_line }}&sort={{ selected_sort }}&q={{ search_query }}&page={{ page_num }}" class="page-item">
+        {{ page_num }}
+      </a>
+      {% elif page_num == 4 or page_num == total_pages - 2 %}
+      <span class="page-item disabled">...</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if current_page < total_pages %}
+    <a href="?trans={{ selected_trans }}&category={{ selected_cat }}&ward={{ selected_ward }}&price={{ selected_price }}&area={{ selected_area }}&line={{ selected_line }}&sort={{ selected_sort }}&q={{ search_query }}&page={{ current_page + 1 }}" class="page-item" aria-label="Trang sau">
+      →
+    </a>
+    {% else %}
+    <span class="page-item disabled">→</span>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <!-- Empty State -->
+  <div style="text-align: center; padding: 4rem 1rem; background: var(--bg-card); border-radius: var(--radius-xl); border: 1px solid var(--border); margin-bottom: 4rem;">
+    <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔍</div>
+    <h2 style="font-family: var(--font-heading); color: #fff; font-size: 1.5rem; margin-bottom: 0.5rem;">Không tìm thấy bất động sản phù hợp</h2>
+    <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem;">
+      Hãy thử thay đổi tiêu chí lọc, chọn khu vực khác hoặc bấm nút đặt lại bên dưới để xem toàn bộ danh mục sản phẩm.
+    </p>
+    <button type="button" class="btn-primary" onclick="resetFilters()">
+      Xem tất cả bất động sản
+    </button>
+  </div>
+  {% endif %}
+
+</div>
+
+<script id="filterConfigsData" type="application/json">
+{{ trans_filter_configs_json | safe }}
+</script>
+{% endblock %}
